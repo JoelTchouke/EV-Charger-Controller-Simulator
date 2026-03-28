@@ -1,10 +1,12 @@
+#pragma once
+
 enum class ChargerState
 {
     Idle,
-    VehiculeDetected,
-    PreSafeChecks, 
-    Charging, 
-    Stoppingg, 
+    VehicleConnected,
+    PreSafeChecks,
+    Charging,
+    Stopping,
     Fault
 };
 

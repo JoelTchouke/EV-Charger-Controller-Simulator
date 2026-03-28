@@ -1,4 +1,5 @@
-#include "include/types.h"
+#pragma once
+#include "types.h"
 
 class PreSafeChecksState{
 public:

@@ -1,9 +1,9 @@
-#include "../../include/VehiculeConnected.h"
+#include "VehiculeConnected.h"
 
 StateResult VehiculeConnected::handle(const SensorData &input, const FaultStatus &faults)
 {
     StateResult result;
-    result.nextState = ChargerState::VehiculeDetected;
+    result.nextState = ChargerState::VehicleConnected;
     result.commands.close_contactor = false;
     result.commands.enable_charging = false;
     result.commands.current_limit = 0;
@@ -12,8 +12,10 @@ StateResult VehiculeConnected::handle(const SensorData &input, const FaultStatus
     {
         result.nextState = ChargerState::Fault;
     }
-    else 
+    else
     {
         result.nextState = ChargerState::PreSafeChecks;
     }
+
+    return result;
 }

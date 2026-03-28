@@ -2,7 +2,7 @@
 
 #include "types.h"
 #include "IdleState.h"
-#include "VehiculeConnectedState.h"
+#include "VehiculeConnected.h"
 #include "PreSafeChecksState.h"
 #include "ChargingState.h"
 #include "StopState.h"
@@ -19,9 +19,9 @@ private:
     ChargerState current_state_;
 
     IdleState idle_state_;
-    VehiculeDetected vehicle_detected_state_;
-    PreSafeChecks precharge_checks_state_;
-    Charging charging_state_;
-    Stoppingg stopping_state_;
-    Fault fault_state_;
+    VehiculeConnected vehicle_detected_state_;
+    PreSafeChecksState precharge_checks_state_;
+    ChargingState charging_state_;
+    StoppingState stopping_state_;
+    FaultState fault_state_;
 };

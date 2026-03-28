@@ -1,5 +1,5 @@
 #include <iostream>
-#include "state_machine.h"
+#include "StateMachine.h"
 
 FaultStatus evaluateFaults(const SensorData& input, const ActuatorCommands& previous_commands) {
     FaultStatus faults;
@@ -14,8 +14,8 @@ FaultStatus evaluateFaults(const SensorData& input, const ActuatorCommands& prev
 const char* toString(ChargerState state) {
     switch (state) {
         case ChargerState::Idle: return "Idle";
-        case ChargerState::VehicleDetected: return "VehicleDetected";
-        case ChargerState::PreChargeChecks: return "PreChargeChecks";
+        case ChargerState::VehicleConnected: return "VehicleConnected";
+        case ChargerState::PreSafeChecks: return "PreSafeChecks";
         case ChargerState::Charging: return "Charging";
         case ChargerState::Stopping: return "Stopping";
         case ChargerState::Fault: return "Fault";
@@ -25,7 +25,7 @@ const char* toString(ChargerState state) {
 
 int main() {
     StateMachine sm;
-    SensorData input;
+    SensorData input{};
     ActuatorCommands previous_commands{};
 
     for (int tick = 0; tick < 8; ++tick) {

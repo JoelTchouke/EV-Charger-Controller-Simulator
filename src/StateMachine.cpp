@@ -1,4 +1,4 @@
-#include "state_machine.h"
+#include "StateMachine.h"
 
 StateMachine::StateMachine() : current_state_(ChargerState::Idle) {}
 
@@ -9,10 +9,10 @@ StateResult StateMachine::update(const SensorData& input, const FaultStatus& fau
         case ChargerState::Idle:
             result = idle_state_.handle(input, faults);
             break;
-        case ChargerState::VehicleDetected:
+        case ChargerState::VehicleConnected:
             result = vehicle_detected_state_.handle(input, faults);
             break;
-        case ChargerState::PreChargeChecks:
+        case ChargerState::PreSafeChecks:
             result = precharge_checks_state_.handle(input, faults);
             break;
         case ChargerState::Charging:
@@ -26,7 +26,7 @@ StateResult StateMachine::update(const SensorData& input, const FaultStatus& fau
             break;
     }
 
-    current_state_ = result.next_state;
+    current_state_ = result.nextState;
     return result;
 }
 

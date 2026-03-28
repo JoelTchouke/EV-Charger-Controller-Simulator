@@ -10,7 +10,7 @@ StateResult IdleState::handle(const SensorData& input, const FaultStatus& faults
     if (faults.any()) {
         result.nextState = ChargerState::Fault;
     } else if (input.plug_inserted) {
-        result.nextState = ChargerState::VehiculeDetected;
+        result.nextState = ChargerState::VehicleConnected;
     }
 
     return result;
