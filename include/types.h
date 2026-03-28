@@ -3,7 +3,7 @@ enum class ChargerState
     Idle,
     VehiculeDetected,
     PreSafeChecks, 
-    Chargin, 
+    Charging, 
     Stoppingg, 
     Fault
 };
@@ -21,14 +21,14 @@ struct SensorData
 
     bool ground_fault;
     bool relay_feedback_closed;
-}
+};
 
 struct ActuatorCommands
 {
     bool close_contactor;
     bool enable_charging;
     float current_limit;
-}
+};
 
 struct FaultStatus {
     bool overtemperature;
@@ -39,4 +39,10 @@ struct FaultStatus {
     bool any() const {
         return overtemperature || overcurrent || ground_fault || relay_mismatch;
     }
+};
+
+struct StateResult
+{
+    ChargerState nextState;
+    ActuatorCommands commands;
 };
