@@ -1,65 +1,81 @@
 #include <iostream>
-#include "StateMachine.h"
+#include <vector>
+#include <string>
 
-FaultStatus evaluateFaults(const SensorData& input, const ActuatorCommands& previous_commands) {
-    FaultStatus faults;
-    faults.overtemperature = input.temperature > 80.0;
-    faults.overcurrent = input.current > 40.0;
-    faults.ground_fault = input.ground_fault;
-    faults.relay_mismatch =
-        previous_commands.close_contactor && !input.relay_feedback_closed;
-    return faults;
+#include "Environment.h"
+#include "StateMachine.h"
+#include "types.h"
+#include "Logger.h"
+#include "Scenarios.h"
+
+using namespace std;
+
+string contactorStateToString(bool closed) {
+    return closed ? "Closed" : "Open";
 }
 
-const char* toString(ChargerState state) {
-    switch (state) {
-        case ChargerState::Idle: return "Idle";
-        case ChargerState::VehicleConnected: return "VehicleConnected";
-        case ChargerState::PreSafeChecks: return "PreSafeChecks";
-        case ChargerState::Charging: return "Charging";
-        case ChargerState::Stopping: return "Stopping";
-        case ChargerState::Fault: return "Fault";
-        default: return "Unknown";
+void printTick(
+    int tick,
+    ChargerState state,
+    const ActuatorCommands& commands,
+    const EnvironmentState& env_state
+) {
+    cout << "Tick: " << tick << "\n";
+    cout << "State: " << chargerStateToString(state) << "\n";
+    cout << "Contactor Command: " << contactorStateToString(commands.close_contactor) << "\n";
+    cout << "Charging Enabled: " << commands.enable_charging << "\n";
+    cout << "Current Limit: " << commands.current_limit << "\n";
+    cout << "Measured Current: " << env_state.current << "\n";
+    cout << "Relay Feedback: " << contactorStateToString(env_state.relay_feedback_closed) << "\n";
+    cout << "Temperature: " << env_state.temperature << "\n";
+    cout << "------------------------------------\n";
+}
+
+void runScenario(
+    const string& scenario_name,
+    const vector<ScenarioEvent>& events,
+    int total_ticks
+) {
+    Environment env(events);
+    StateMachine sm;
+    Logger logger(scenario_name + ".csv");
+
+    if (!logger.isOpen()) {
+        cerr << "Failed to open log file for scenario: " << scenario_name << "\n";
+        return;
+    }
+
+    cout << "\n===== Running Scenario: " << scenario_name << " =====\n";
+
+    for (int i = 0; i < total_ticks; i++) {
+        env.applyEventsForCurrentTick();
+
+        SensorData input = env.getSensorData();
+
+        // Replace this if your state machine internally evaluates faults.
+        FaultStatus faults{};
+        StateResult result = sm.update(input, faults);
+
+        env.applyControllerCommands(result.commands);
+
+        printTick(env.getCurrentTick(), result.nextState, result.commands, env.getState());
+
+        logger.logTick(
+            env.getCurrentTick(),
+            result.nextState,
+            input,
+            result.commands,
+            env.getState()
+        );
+
+        env.advanceTick();
     }
 }
 
 int main() {
-    StateMachine sm;
-    SensorData input{};
-    ActuatorCommands previous_commands{};
-
-    for (int tick = 0; tick < 8; ++tick) {
-        if (tick == 1) {
-            input.plug_inserted = true;
-        }
-        if (tick == 2) {
-            input.ev_ready = true;
-            input.user_start_request = true;
-        }
-        if (tick == 3) {
-            input.relay_feedback_closed = true;
-            input.user_start_request = false;
-        }
-        if (tick == 6) {
-            input.user_stop_request = true;
-        }
-        if (tick == 7) {
-            input.relay_feedback_closed = false;
-            input.user_stop_request = false;
-        }
-
-        FaultStatus faults = evaluateFaults(input, previous_commands);
-        StateResult result = sm.update(input, faults);
-
-        std::cout << "Tick: " << tick
-                  << " | State: " << toString(sm.getCurrentState())
-                  << " | close_contactor=" << result.commands.close_contactor
-                  << " | enable_charging=" << result.commands.enable_charging
-                  << " | current_limit=" << result.commands.current_limit
-                  << "\n";
-
-        previous_commands = result.commands;
-    }
+    runScenario("normal_scenario", makeNormalScenario(), 15);
+    runScenario("overtemperature_scenario", makeOvertemperatureScenario(), 15);
+    runScenario("ground_fault_scenario", makeGroundFaultScenario(), 15);
 
     return 0;
 }
